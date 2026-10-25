@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>zhuangjiba.com · 3D 智能装机</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='18' y='18' width='64' height='64' rx='14' fill='%23c8a96e'/%3E%3Crect x='34' y='34' width='32' height='32' rx='6' fill='%230b0c0f'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/style.css?v=22">
+<script type="importmap">
+{
+  "imports": {
+    "three": "./libs/three.module.js",
+    "three/addons/": "./libs/addons/"
+  }
+}
+</script>
+</head>
+<body>
+
+<nav id="topbar">
+  <div class="logo"><b>▦</b> zhuangjiba<span>.com</span></div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" data-view="home">智能推荐</button>
+    <button class="nav-tab" data-view="rig">3D 装机</button>
+    <button class="nav-tab" data-view="sheet">配置单</button>
+  </div>
+  <div class="nav-status">当前配置 <b id="navPrice">--</b></div>
+</nav>
+
+<main>
+
+  <!-- ============ 首页：标签筛选 + 个性化推荐 ============ -->
+  <section id="view-home" class="view active">
+    <div class="hero">
+      <h1>说需求，出配置，<em>3D 看得见</em></h1>
+      <p>选好标签，即刻生成三套个性化方案 —— 性价比 · 均衡 · 性能，全部支持 3D 装机预览与逐件更换</p>
+    </div>
+    <div class="filter-layout">
+      <aside id="filterPanel" class="glass panel"></aside>
+      <div id="recResults">
+        <div class="rec-empty glass">
+          <div class="rec-empty-ico">🎛️</div>
+          <p>先在左侧选择预算与用途标签<br>点击「生成推荐」查看专属方案</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 3D 装机视图 ============ -->
+  <section id="view-rig" class="view">
+    <div class="rig-layout">
+      <aside id="slotList" class="glass"></aside>
+      <div id="rigStage" class="glass">
+        <div id="canvas3d"></div>
+        <div id="partTip" class="part-tip"></div>
+        <div class="rig-toolbar">
+          <button class="tbtn" id="btnRgb" title="RGB 灯效">💡</button>
+          <button class="tbtn" id="btnRotate" title="自动旋转">🔄</button>
+          <button class="tbtn" id="btnTheme" title="机箱黑白主题">🌓</button>
+          <button class="tbtn" id="btnReset" title="重置视角">🎯</button>
+          <button class="tbtn" id="btnShot" title="导出 PNG">📷</button>
+          <label class="explode-ctl" title="爆炸视图">爆炸 <input type="range" id="explodeRange" min="0" max="100" value="0"></label>
+        </div>
+        <div class="rig-hint">拖拽旋转 · 滚轮缩放 · 点击配件更换</div>
+      </div>
+    </div>
+    <div id="rigBar" class="glass rig-bar"></div>
+    <div id="drawer" class="drawer glass"></div>
+  </section>
+
+  <!-- ============ 配置单视图 ============ -->
+  <section id="view-sheet" class="view">
+    <div id="sheetContent"></div>
+  </section>
+
+</main>
+
+<div id="toast" class="toast"></div>
+
+<script src="js/data.js?v=22"></script>
+<script src="js/recommend.js?v=22"></script>
+<script type="module" src="js/app.js?v=22"></script>
+</body>
+</html>
