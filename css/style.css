@@ -338,3 +338,14 @@ input[type=range]::-webkit-slider-thumb{
   border:1px solid rgba(255,255,255,.09);color:#aca99f;transition:.15s}
 .bchip:hover{border-color:rgba(200,169,110,.4);color:#d8d4c8}
 .bchip.on{background:rgba(200,169,110,.1);border-color:rgba(200,169,110,.55);color:var(--acc-soft)}
+
+/* 价格趋势与指导价对比 */
+.trend{font-size:10.5px;padding:1px 6px;border-radius:4px;letter-spacing:.3px}
+.t-up{color:#e06c5d;background:rgba(224,108,93,.1)}
+.t-down{color:#7fbf8f;background:rgba(127,191,143,.1)}
+.t-flat{color:var(--faint);background:rgba(255,255,255,.04)}
+.msrp{color:var(--faint);text-decoration:line-through;font-size:11px}
+.price-sub{font-size:11px;color:var(--faint);margin-top:-6px;letter-spacing:.3px}
+.price-note{font-size:11px;color:var(--faint);margin:-6px 0 12px;letter-spacing:.5px}
+.bcard .price small{margin-left:6px}
+.slot{position:relative}

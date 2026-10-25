@@ -261,7 +261,11 @@ function one(name, spend, mode, fl, W, pr, budget){
   ids.fan = fanRules();
 
   /* --- 预算收敛 --- */
-  const lists = { case:csList, cpu:cpuList, mobo:moboList, cooler:coolerList, ram:ramList, gpu:gpuList, ssd:ssdList };
+  // 升降级步进要求列表按价格升序（perf/颜值模式的部分列表按品质排序，这里统一归一）
+  const byPrice = (a,b)=>a.price-b.price;
+  const lists = { case:[...csList].sort(byPrice), cpu:cpuList, mobo:moboList,
+                  cooler:[...coolerList].sort(byPrice), ram:[...ramList].sort(byPrice),
+                  gpu:gpuList, ssd:ssdList };
   // 降级顺序：场景权重越低的品类越先削减；同接口/同兼容域内移动
   const order = ['cpu','mobo','gpu','ram','ssd','cooler','case','fan'].sort((a,b)=>(W[a]||0)-(W[b]||0));
   const FITO={ITX:['ITX'],'M-ATX':['ITX','M-ATX'],ATX:['ITX','M-ATX','ATX'],'E-ATX':['ITX','M-ATX','ATX','E-ATX']};

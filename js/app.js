@@ -13,6 +13,19 @@ const fmtR = (lo,hi) => (hi>lo ? '¥'+Math.round(lo).toLocaleString('zh-CN')+'-'
                               : '¥'+Math.round(lo).toLocaleString('zh-CN'));
 const pR = p => pRng2(p);
 const pRng2 = p => fmtR(pRange(p)[0], pRange(p)[1]);
+const pTrend = p => {
+  if (!p.trend) return null;
+  const m = /^([a-z]+)(\d+)$/.exec(p.trend);
+  return m ? { dir:m[1], pct:+m[2] } : { dir:'flat', pct:0 };
+};
+const trendHTML = p => {
+  const t = pTrend(p);
+  if (!t) return '';
+  if (t.dir === 'flat') return '<span class="trend t-flat">→ 平稳</span>';
+  return t.dir === 'up' ? `<span class="trend t-up">↑${t.pct}%</span>` : `<span class="trend t-down">↓${t.pct}%</span>`;
+};
+const msrpHTML = p => p.msrp && p.msrp !== p.price ? `<span class="msrp">指导价 ¥${p.msrp.toLocaleString('zh-CN')}</span>` : '';
+const partsMSRP = P => { let t=0; SLOTS.forEach(sk=>{ t += (P[sk.key].msrp || P[sk.key].price); }); return t; };
 const partsRange = P => { let lo=0, hi=0; SLOTS.forEach(s=>{ const r=pRange(P[s.key]); lo+=r[0]; hi+=r[1]; }); return [lo,hi]; };
 
 const SLOTS = [
@@ -145,7 +158,9 @@ function cardHTML(variant, b){
   <div class="bcard glass" data-variant="${variant}">
     <span class="match">匹配度 ${b.match.pct}%</span>
     <h3>${b.name}</h3>
-    <div class="price">${fmtR(...partsRange(P))}<small>合计区间</small></div>
+    <div class="price">${fmtR(...partsRange(P))}<small>实际成交</small></div>
+    <div class="price-sub">${(()=>{ const m=partsMSRP(P); const [lo,hi]=partsRange(P); const mid=(lo+hi)/2;
+      return mid>m+50 ? `指导价 ${fmt(m)} · 溢价约 ${fmt(mid-m)}` : `指导价 ${fmt(m)}`; })()}</div>
     <div class="specs">
       <div class="row"><b>CPU</b><span>${P.cpu.name}</span></div>
       <div class="row"><b>显卡</b><span>${gpuName(P.gpu)}</span></div>
@@ -173,6 +188,7 @@ function renderResults(){
       <span class="rtab" data-tab="picks">单品精选</span>
       <span class="rtab" data-tab="why">决策分析</span>
     </div>
+    <div class="price-note">价格为近期实际成交区间（含市场溢价）；<span class="trend t-up">↑</span>涨价 <span class="trend t-down">↓</span>降价 <span class="trend t-flat">→</span>平稳</div>
     <div id="tab-builds" class="rtab-view"><div class="cards">
       ${Object.entries(state.recs).map(([k,b])=>cardHTML(k,b)).join('')}
     </div></div>
@@ -219,11 +235,11 @@ function renderPicks(){
     <div class="picks-grid">
       <div class="pick glass"><h4>🏅 本场景最值 CPU</h4>
         <div class="nm">${pickCPU.name}</div>
-        <div class="p-price">${pR(pickCPU)}</div>
+        <div class="p-price">${pR(pickCPU)} ${trendHTML(pickCPU)}</div>
         <div class="why">${SPEC.cpu(pickCPU)}<br>按「${sceneTop}」的用途权重综合表现最佳，性能/价格比最高。</div></div>
       <div class="pick glass"><h4>🎮 本场景最值显卡</h4>
         <div class="nm">${gpuName(pickGPU)}</div>
-        <div class="p-price">${pR(pickGPU)}</div>
+        <div class="p-price">${pR(pickGPU)} ${trendHTML(pickGPU)}</div>
         <div class="why">${SPEC.gpu(pickGPU)}<br>${sp.includes('黑苹果')?'黑苹果需求下仅推荐 A 卡（驱动兼容）':'在你选择的用途下每元性能最高。'}</div></div>
       <div class="pick glass"><h4>💡 为什么推荐三套？</h4>
         <div class="why" style="line-height:2">
@@ -286,7 +302,7 @@ function renderSlots(){
     <div class="slot" data-slot="${s.key}">
       <div class="ico">${s.ico}</div>
       <div class="mid"><div class="cat">${s.label}</div><div class="nm">${s.key==='gpu'?gpuName(P.gpu):P[s.key].name}</div></div>
-      <div class="price">${P[s.key].price?pR(P[s.key]):'—'}</div>
+      <div class="price">${P[s.key].price?pR(P[s.key]):'—'}</div><div style="position:absolute;right:18px;bottom:6px">${trendHTML(P[s.key])}</div>
     </div>`).join('');
   $$('#slotList .slot').forEach(el=>{
     el.onclick = ()=>openDrawer(el.dataset.slot);
@@ -310,6 +326,7 @@ function openDrawer(key){
         <div class="opt ${o.ok?'':'dis'}" data-id="${o.p.id}">
           <div class="r1"><span class="nm">${key==='gpu'?gpuName(o.p):o.p.name}</span><span class="pr">${o.p.price?pR(o.p.price):'免费/自带'}</span></div>
           <div class="r2">${SPEC[key](o.p)}</div>
+          <div class="r2">${msrpHTML(o.p)} ${trendHTML(o.p)}</div>
           <div class="tags">${o.tags.map(t=>`<span class="tg ${t==='当前'?'cur':(o.ok?'':'bad')}">${t}</span>`).join('')}</div>
         </div>`).join('')}
     </div>`;
@@ -407,8 +424,9 @@ function renderSheet(){
         <table class="stable">
           <thead><tr><th>配件</th><th>型号</th><th style="text-align:right">价格</th></tr></thead>
           <tbody>
-            ${SLOTS.map(s=>`<tr><td style="color:var(--dim)">${s.ico} ${s.label}</td><td class="nm">${s.key==='gpu'?gpuName(P.gpu):P[s.key].name}<div style="font-size:11px;color:var(--dim);margin-top:3px">${SPEC[s.key](P[s.key])}</div></td><td class="pr">${P[s.key].price?pR(P[s.key]):'—'}</td></tr>`).join('')}
-            <tr class="total"><td colspan="2">合计区间</td><td class="pr">${fmtR(...partsRange(P))}</td></tr>
+            ${SLOTS.map(s=>`<tr><td style="color:var(--dim)">${s.ico} ${s.label}</td><td class="nm">${s.key==='gpu'?gpuName(P.gpu):P[s.key].name}<div style="font-size:11px;color:var(--dim);margin-top:3px">${SPEC[s.key](P[s.key])}</div><div style="font-size:10.5px;margin-top:2px">${msrpHTML(P[s.key])} ${trendHTML(P[s.key])}</div></td><td class="pr">${P[s.key].price?pR(P[s.key]):'—'}</td></tr>`).join('')}
+            <tr class="total"><td colspan="2">实际成交区间</td><td class="pr">${fmtR(...partsRange(P))}</td></tr>
+            <tr><td colspan="2" style="color:var(--faint);font-size:12px">指导价合计（对比）</td><td class="pr" style="font-size:13px;color:var(--dim)">${fmt(partsMSRP(P))}</td></tr>
           </tbody>
         </table>
       </div>
